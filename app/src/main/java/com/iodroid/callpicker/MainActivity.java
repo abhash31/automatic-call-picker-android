@@ -52,6 +52,13 @@ public class MainActivity extends AppCompatActivity {
         phoneStatePermissionText = findViewById(R.id.phoneStatePermissionText);
         callPhonePermissionText = findViewById(R.id.callPhonePermissionText);
 
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_DENIED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1);
+        }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.FOREGROUND_SERVICE) == PackageManager.PERMISSION_DENIED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.FOREGROUND_SERVICE}, 2);
+        }
+
         answerPhonePermission();
         phoneStatePermission();
         callPhonePermission();
@@ -77,13 +84,6 @@ public class MainActivity extends AppCompatActivity {
             intent.setData(Uri.parse("package:" + this.getPackageName()));
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             this.startActivity(intent);
-        }
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_DENIED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1);
-        }
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.FOREGROUND_SERVICE) == PackageManager.PERMISSION_DENIED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.FOREGROUND_SERVICE}, 2);
         }
 
         Intent intent = new Intent(this, CallPickerForegroundService.class);

@@ -26,8 +26,6 @@ public class IncomingCallReceiver extends BroadcastReceiver {
 
             // Attempt to answer the call (works only in system apps)
             TelecomManager telecomManager = (TelecomManager) context.getSystemService(Context.TELECOM_SERVICE);
-            AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-
 
             if (telecomManager != null) {
                 // This answers the call
@@ -38,10 +36,9 @@ public class IncomingCallReceiver extends BroadcastReceiver {
                 }
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     telecomManager.acceptRingingCall();
-                    if (audioManager != null) {
-                        audioManager.setMode(AudioManager.MODE_IN_CALL);
-                        audioManager.setSpeakerphoneOn(true);
-                    }
+                    AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+                    audioManager.setMode(AudioManager.MODE_IN_CALL);
+                    audioManager.setSpeakerphoneOn(true);
                 }
             }
         }
