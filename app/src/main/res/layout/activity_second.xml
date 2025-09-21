@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:id="@+id/appText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/answerPhonePermissionText"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="50dp"
+        android:text="Automatic Call Picker!"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:id="@+id/answerPhonePermissionText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Answer Phone Permission Not Granted"
+        android:textColor="@color/red"
+        android:layout_centerHorizontal="true"
+        android:layout_centerInParent="true"/>
+
+    <Button
+        android:id="@+id/answerPhoneButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Grant Answer Phone Permission"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/answerPhonePermissionText"
+        android:layout_marginTop="10dp"/>
+
+    <TextView
+        android:id="@+id/phoneStatePermissionText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Phone State Permission Not Granted"
+        android:textColor="@color/red"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/answerPhoneButton"
+        android:layout_marginTop="10dp"/>
+
+    <Button
+        android:id="@+id/phoneStateButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Grant Phone State Permission"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/phoneStatePermissionText"
+        android:layout_marginTop="10dp"/>
+
+    <TextView
+        android:id="@+id/callPhonePermissionText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Call Phone Permission Not Granted"
+        android:textColor="@color/red"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/phoneStateButton"
+        android:layout_marginTop="10dp"/>
+
+    <Button
+        android:id="@+id/callPhoneButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Grant Call Phone Permission"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/callPhonePermissionText"
+        android:layout_marginTop="10dp"/>
+
+</RelativeLayout>

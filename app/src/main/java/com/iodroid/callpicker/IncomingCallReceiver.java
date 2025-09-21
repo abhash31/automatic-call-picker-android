@@ -15,6 +15,19 @@ import android.widget.Toast;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import java.util.UUID;
+
+import android.Manifest;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.media.AudioManager;
+import android.os.Build;
+import android.telecom.TelecomManager;
+import android.telephony.TelephonyManager;
+import android.widget.Toast;
+import androidx.core.app.ActivityCompat;
+
 public class IncomingCallReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -31,7 +44,6 @@ public class IncomingCallReceiver extends BroadcastReceiver {
                 // This answers the call
                 if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ANSWER_PHONE_CALLS) != PackageManager.PERMISSION_GRANTED) {
                     Toast.makeText(context, "Permission not granted", Toast.LENGTH_SHORT).show();
-
                     return;
                 }
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -39,6 +51,7 @@ public class IncomingCallReceiver extends BroadcastReceiver {
                     AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
                     audioManager.setMode(AudioManager.MODE_IN_CALL);
                     audioManager.setSpeakerphoneOn(true);
+
                 }
             }
         }

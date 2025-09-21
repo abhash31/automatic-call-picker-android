@@ -67,7 +67,7 @@ public class CallPickerForegroundService extends Service {
                 .setContentTitle("Call Picker is running")
                 .setContentText("Elapsed time: "+ timeFormatted)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .setContentIntent(PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), PendingIntent.FLAG_MUTABLE));
+                .setContentIntent(PendingIntent.getActivity(this, 0, new Intent(this, MainActivityCallPicker.class), PendingIntent.FLAG_MUTABLE));
 
         startForeground(1, builder.build());
     }

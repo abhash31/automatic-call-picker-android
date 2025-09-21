@@ -1,182 +1,208 @@
 package com.iodroid.callpicker;
 
 import android.Manifest;
-import android.content.Intent;
-import android.content.IntentFilter;
+import android.bluetooth.BluetoothDevice;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings;
-import android.telephony.TelephonyManager;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
-import androidx.annotation.RequiresApi;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
-public class MainActivity extends AppCompatActivity {
-    private static final int REQUEST_READ_PHONE_STATE = 1;
-    private static final int REQUEST_CALL_PHONE = 2;
-    private static final int REQUEST_ANSWER_PHONE = 3;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-    Button answerPhoneButton;
-    TextView answerPhonePermissionText;
-    Button phoneStateButton;
-    TextView phoneStatePermissionText;
-    Button callPhoneButton;
-    TextView callPhonePermissionText;
+public class MainActivity extends AppCompatActivity implements BLManager.BLEListener {
 
+    private static final int PERMISSION_REQUEST_CODE = 1;
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
+    private BLManager BLManager;
+    private TextView statusText;
+    private TextView messageText;
+    private Button scanButton;
+    private Button srtButton;
+    private Button endButton;
+    private ListView deviceList;
+
+    private ArrayAdapter<String> deviceAdapter;
+    private List<String> deviceNames;
+    private Map<String, BluetoothDevice> deviceMap;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
+
+        // Initialize views
+        statusText = findViewById(R.id.statusText);
+        messageText = findViewById(R.id.messageText);
+        scanButton = findViewById(R.id.scanButton);
+        srtButton = findViewById(R.id.srtButton);
+        endButton = findViewById(R.id.endButton);
+        deviceList = findViewById(R.id.deviceList);
+
+        // Initialize device list
+        deviceNames = new ArrayList<>();
+        deviceMap = new HashMap<>();
+        deviceAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, deviceNames);
+        deviceList.setAdapter(deviceAdapter);
+
+        // Initialize BLE manager
+        BLManager = new BLManager(this, this);
+
+        // Check permissions
+        checkPermissions();
+
+        // Set listeners
+        scanButton.setOnClickListener(v -> startScanning());
+        srtButton.setOnClickListener(v -> sendCommand("SRT"));
+        endButton.setOnClickListener(v -> sendCommand("END"));
+
+        deviceList.setOnItemClickListener((parent, view, position, id) -> {
+            String deviceName = deviceNames.get(position);
+            BluetoothDevice device = deviceMap.get(deviceName);
+            if (device != null) {
+                connectToDevice(device);
+            }
         });
 
-        answerPhoneButton = findViewById(R.id.answerPhoneButton);
-        phoneStateButton = findViewById(R.id.phoneStateButton);
-        callPhoneButton = findViewById(R.id.callPhoneButton);
-
-        answerPhonePermissionText = findViewById(R.id.answerPhonePermissionText);
-        phoneStatePermissionText = findViewById(R.id.phoneStatePermissionText);
-        callPhonePermissionText = findViewById(R.id.callPhonePermissionText);
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_DENIED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1);
-        }
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.FOREGROUND_SERVICE) == PackageManager.PERMISSION_DENIED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.FOREGROUND_SERVICE}, 2);
-        }
-
-        answerPhonePermission();
-        phoneStatePermission();
-        callPhonePermission();
-
-        answerPhoneButton.setOnClickListener(v -> {
-            answerPhonePermission();
-        });
-
-        phoneStateButton.setOnClickListener(v -> {
-            phoneStatePermission();
-        });
-
-        callPhoneButton.setOnClickListener(v -> {
-            callPhonePermission();
-        });
-
-        IntentFilter filter = new IntentFilter(TelephonyManager.ACTION_PHONE_STATE_CHANGED);
-        IncomingCallReceiver receiver = new IncomingCallReceiver();
-        registerReceiver(receiver, filter);
-
-        if (!Settings.System.canWrite(this)) {
-            Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
-            intent.setData(Uri.parse("package:" + this.getPackageName()));
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            this.startActivity(intent);
-        }
-
-        Intent intent = new Intent(this, CallPickerForegroundService.class);
-        startForegroundService(intent);
+        // Initially disable command buttons
+        setCommandButtonsEnabled(false);
     }
 
-    private void startFgServiceSafely() {
-        // Android 13+ needs POST_NOTIFICATIONS at runtime
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-                    != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(
-                        this,
-                        new String[]{Manifest.permission.POST_NOTIFICATIONS},
-                        42
-                );
-                return; // wait for user response then call again
+    private void checkPermissions() {
+        List<String> permissions = new ArrayList<>();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            permissions.add(Manifest.permission.BLUETOOTH_SCAN);
+            permissions.add(Manifest.permission.BLUETOOTH_CONNECT);
+            permissions.add(Manifest.permission.BLUETOOTH_ADVERTISE);
+            permissions.add(Manifest.permission.BLUETOOTH);
+        } else {
+            permissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
+        }
+
+        List<String> permissionsToRequest = new ArrayList<>();
+        for (String permission : permissions) {
+            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+                permissionsToRequest.add(permission);
             }
         }
 
-        Intent svc = new Intent(this, CallPickerForegroundService.class);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            ContextCompat.startForegroundService(this, svc);
-        } else {
-            startService(svc);
+//        if (!permissionsToRequest.isEmpty()) {
+//            ActivityCompat.requestPermissions(this,
+//                    permissionsToRequest.toArray(new String[0]),
+//                    PERMISSION_REQUEST_CODE);
+//        }
+
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH_CONNECT}, 1);
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH_SCAN}, 2);
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH_ADVERTISE}, 3);
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH}, 4);
+    }
+
+    private void startScanning() {
+        deviceNames.clear();
+        deviceMap.clear();
+        deviceAdapter.notifyDataSetChanged();
+        statusText.setText("Scanning...");
+        BLManager.startScan();
+
+        // Disable scan button during scanning
+        scanButton.setEnabled(false);
+        new android.os.Handler().postDelayed(() -> {
+            scanButton.setEnabled(true);
+            if (statusText.getText().toString().equals("Scanning...")) {
+                statusText.setText("Scan complete");
+            }
+        }, 10000);
+    }
+
+    private void connectToDevice(BluetoothDevice device) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        statusText.setText("Connecting to " + device.getName() + "...");
+        BLManager.connectToDevice(device);
+    }
+
+    private void sendCommand(String command) {
+        if (BLManager.sendMessage(command)) {
+            Toast.makeText(this, "Sent: " + command, Toast.LENGTH_SHORT).show();
         }
     }
 
-    // Optionally, stop it:
-    private void stopFgService() {
-        stopService(new Intent(this, CallPickerForegroundService.class));
+    private void setCommandButtonsEnabled(boolean enabled) {
+        srtButton.setEnabled(enabled);
+        endButton.setEnabled(enabled);
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == 42) {
-            startFgServiceSafely();
+    public void onDeviceFound(BluetoothDevice device) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        String name = device.getName();
+        if (name == null || name.isEmpty()) {
+            name = device.getAddress();
+        }
+
+        if (!deviceMap.containsKey(name)) {
+            deviceNames.add(name);
+            deviceMap.put(name, device);
+            deviceAdapter.notifyDataSetChanged();
         }
     }
 
-    public void answerPhonePermission(){
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ANSWER_PHONE_CALLS) != PackageManager.PERMISSION_GRANTED) {
-            // Permission is not granted
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ANSWER_PHONE_CALLS}, REQUEST_ANSWER_PHONE);
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ANSWER_PHONE_CALLS) == PackageManager.PERMISSION_GRANTED) {
-                answerPhonePermissionText.setText("Answer Phone Permission Granted!");
-                answerPhonePermissionText.setTextColor(Color.rgb(0, 255, 0));
-            } else{
-                answerPhonePermissionText.setText("Answer Phone Permission Not Granted!");
-                answerPhonePermissionText.setTextColor(Color.rgb(255, 0, 0));
-            }
-        } else {
-            // Permission has already been granted
-            answerPhonePermissionText.setText("Answer Phone Permission Granted!");
-            answerPhonePermissionText.setTextColor(Color.rgb(0, 255, 0));
-        }
+    @Override
+    public void onConnected() {
+        statusText.setText("Connected");
+        setCommandButtonsEnabled(true);
     }
 
-    public void phoneStatePermission(){
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-            // Permission is not granted
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_PHONE_STATE}, REQUEST_READ_PHONE_STATE);
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
-                phoneStatePermissionText.setText("Phone State Permission Granted!");
-                phoneStatePermissionText.setTextColor(Color.rgb(0, 255, 0));
-            } else{
-                phoneStatePermissionText.setText("Phone State Permission Not Granted!");
-                phoneStatePermissionText.setTextColor(Color.rgb(255, 0, 0));
-            }
-        } else {
-            // Permission has already been granted
-            phoneStatePermissionText.setText("Phone State Permission Granted!");
-            phoneStatePermissionText.setTextColor(Color.rgb(0, 255, 0));
-        }
+    @Override
+    public void onDisconnected() {
+        statusText.setText("Disconnected");
+        setCommandButtonsEnabled(false);
     }
 
-    public void callPhonePermission(){
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
-            // Permission is not granted
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CALL_PHONE}, REQUEST_CALL_PHONE);
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
-                callPhonePermissionText.setText("Call Phone Permission Granted!");
-                callPhonePermissionText.setTextColor(Color.rgb(0, 255, 0));
-            } else{
-                callPhonePermissionText.setText("Call Phone Permission Not Granted!");
-                callPhonePermissionText.setTextColor(Color.rgb(255, 0, 0));
-            }
-        } else {
-            // Permission has already been granted
-            callPhonePermissionText.setText("Call Phone Permission Granted!");
-            callPhonePermissionText.setTextColor(Color.rgb(0, 255, 0));
+    @Override
+    public void onMessageReceived(String message) {
+        messageText.setText("Received: " + message);
+    }
+
+    @Override
+    public void onError(String error) {
+        Toast.makeText(this, "Error: " + error, Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (BLManager != null) {
+            BLManager.disconnect();
         }
     }
 }
-
