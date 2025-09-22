@@ -46,7 +46,7 @@ public class CallPickerForegroundService extends Service {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             String name = "Foreground Timer Service";
             String description = "Channel for timer service";
-            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            int importance = NotificationManager.IMPORTANCE_LOW;
             NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
             channel.setDescription(description);
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
@@ -67,7 +67,7 @@ public class CallPickerForegroundService extends Service {
                 .setContentTitle("Call Picker is running")
                 .setContentText("Elapsed time: "+ timeFormatted)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .setContentIntent(PendingIntent.getActivity(this, 0, new Intent(this, MainActivityCallPicker.class), PendingIntent.FLAG_MUTABLE));
+                .setContentIntent(PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), PendingIntent.FLAG_MUTABLE));
 
         startForeground(1, builder.build());
     }

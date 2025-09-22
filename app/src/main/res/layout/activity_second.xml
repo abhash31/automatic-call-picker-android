@@ -1,75 +1,273 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    android:background="@color/background"
+    tools:context=".MainActivityBluetooth">
 
-    <TextView
-        android:id="@+id/appText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/answerPhonePermissionText"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="50dp"
-        android:text="Automatic Call Picker!"
-        android:textStyle="bold"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="24dp">
 
-    <TextView
-        android:id="@+id/answerPhonePermissionText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Answer Phone Permission Not Granted"
-        android:textColor="@color/red"
-        android:layout_centerHorizontal="true"
-        android:layout_centerInParent="true"/>
+        <!-- App Header -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_marginBottom="48dp">
 
-    <Button
-        android:id="@+id/answerPhoneButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Grant Answer Phone Permission"
-        android:layout_centerHorizontal="true"
-        android:layout_below="@id/answerPhonePermissionText"
-        android:layout_marginTop="10dp"/>
+            <ImageView
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:src="@drawable/phone"
+                android:layout_marginBottom="16dp"
+                app:tint="@color/primary"/>
 
-    <TextView
-        android:id="@+id/phoneStatePermissionText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Phone State Permission Not Granted"
-        android:textColor="@color/red"
-        android:layout_centerHorizontal="true"
-        android:layout_below="@id/answerPhoneButton"
-        android:layout_marginTop="10dp"/>
+            <TextView
+                android:id="@+id/appText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Automatic Call Picker"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"/>
 
-    <Button
-        android:id="@+id/phoneStateButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Grant Phone State Permission"
-        android:layout_centerHorizontal="true"
-        android:layout_below="@id/phoneStatePermissionText"
-        android:layout_marginTop="10dp"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Grant permissions to enable auto-answer"
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginTop="8dp"/>
+        </LinearLayout>
 
-    <TextView
-        android:id="@+id/callPhonePermissionText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Call Phone Permission Not Granted"
-        android:textColor="@color/red"
-        android:layout_centerHorizontal="true"
-        android:layout_below="@id/phoneStateButton"
-        android:layout_marginTop="10dp"/>
+        <!-- Permissions Container -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="@color/card_background">
 
-    <Button
-        android:id="@+id/callPhoneButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Grant Call Phone Permission"
-        android:layout_centerHorizontal="true"
-        android:layout_below="@id/callPhonePermissionText"
-        android:layout_marginTop="10dp"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
 
-</RelativeLayout>
+                <!-- Answer Phone Permission -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingVertical="12dp">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/phone_in_talk"
+                        app:tint="@color/primary"
+                        android:layout_marginEnd="16dp"/>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Answer Phone"
+                            android:textSize="16sp"
+                            android:textColor="@color/text_primary"/>
+
+                        <TextView
+                            android:id="@+id/answerPhonePermissionText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Not granted"
+                            android:textSize="12sp"
+                            android:textColor="@color/error"/>
+                    </LinearLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/answerPhoneButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:text="Grant"
+                        android:textSize="12sp"
+                        app:cornerRadius="20dp"
+                        style="@style/Widget.MaterialComponents.Button"/>
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/divider"
+                    android:layout_marginVertical="8dp"/>
+
+                <!-- Phone State Permission -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingVertical="12dp">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/phone_incoming_outgoing"
+                        app:tint="@color/primary"
+                        android:layout_marginEnd="16dp"/>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Phone State"
+                            android:textSize="16sp"
+                            android:textColor="@color/text_primary"/>
+
+                        <TextView
+                            android:id="@+id/phoneStatePermissionText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Not granted"
+                            android:textSize="12sp"
+                            android:textColor="@color/error"/>
+                    </LinearLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/phoneStateButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:text="Grant"
+                        android:textSize="12sp"
+                        app:cornerRadius="20dp"
+                        style="@style/Widget.MaterialComponents.Button"/>
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/divider"
+                    android:layout_marginVertical="8dp"/>
+
+                <!-- Call Phone Permission -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingVertical="12dp">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/phone_outgoing"
+                        app:tint="@color/primary"
+                        android:layout_marginEnd="16dp"/>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Manage Calls"
+                            android:textSize="16sp"
+                            android:textColor="@color/text_primary"/>
+
+                        <TextView
+                            android:id="@+id/callPhonePermissionText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Not granted"
+                            android:textSize="12sp"
+                            android:textColor="@color/error"/>
+                    </LinearLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/callPhoneButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:text="Grant"
+                        android:textSize="12sp"
+                        app:cornerRadius="20dp"
+                        style="@style/Widget.MaterialComponents.Button"/>
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/divider"
+                    android:layout_marginVertical="8dp"/>
+
+                <!-- Read Call Logs Permission -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingVertical="12dp">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/phone_log"
+                        app:tint="@color/primary"
+                        android:layout_marginEnd="16dp"/>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Call History"
+                            android:textSize="16sp"
+                            android:textColor="@color/text_primary"/>
+
+                        <TextView
+                            android:id="@+id/readCallLogsPermissionText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Not granted"
+                            android:textSize="12sp"
+                            android:textColor="@color/error"/>
+                    </LinearLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/readCallLogsButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:text="Grant"
+                        android:textSize="12sp"
+                        app:cornerRadius="20dp"
+                        style="@style/Widget.MaterialComponents.Button"/>
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+    </LinearLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
